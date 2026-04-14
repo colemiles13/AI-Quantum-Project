@@ -1,0 +1,287 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quantum North Alabama | The Future of Computing</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        
+        :root {
+            --sky-glow: #38bdf8;
+            --space-bg: #020617;
+        }
+
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: var(--space-bg);
+            color: #f1f5f9;
+            scroll-behavior: smooth;
+        }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.4);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1.5rem;
+        }
+
+        /* Interactive Coin Flip CSS */
+        .coin-spin {
+            animation: spin 0.2s linear infinite;
+        }
+        @keyframes spin {
+            100% { transform: rotateY(360deg); }
+        }
+
+        .hover-glow:hover {
+            box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
+            border-color: var(--sky-glow);
+        }
+
+        .gradient-text {
+            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+    </style>
+</head>
+<body class="selection:bg-sky-500/30">
+
+    <!-- Navbar -->
+    <nav class="fixed w-full z-50 top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
+        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
+            <div class="flex items-center space-x-2">
+                <div class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center">
+                    <i class="fa-solid fa-atom text-white text-xs"></i>
+                </div>
+                <span class="text-xl font-bold tracking-tight">QUANTUM<span class="text-sky-400">HSV</span></span>
+            </div>
+            <div class="hidden lg:flex space-x-6 items-center">
+                <a href="#intro" class="text-sm font-medium hover:text-sky-400 transition">What is QC?</a>
+                <a href="#concepts" class="text-sm font-medium hover:text-sky-400 transition">Concepts</a>
+                <a href="#huntsville" class="text-sm font-medium hover:text-sky-400 transition">Alabama Hub</a>
+                <a href="#podcast" class="text-sm font-medium hover:text-sky-400 transition">Podcast</a>
+                <a href="#resources" class="bg-sky-500 hover:bg-sky-600 px-5 py-2 rounded-full text-sm font-bold transition">Resources</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Hero Section -->
+    <section class="relative pt-40 pb-24 overflow-hidden">
+        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-sky-500/10 blur-[120px] rounded-full -z-10"></div>
+        <div class="container mx-auto px-6 text-center">
+            <span class="px-4 py-1.5 rounded-full border border-sky-500/30 bg-sky-500/5 text-sky-400 text-xs font-bold uppercase tracking-widest mb-6 inline-block">
+                The New Frontier of North Alabama
+            </span>
+            <h1 class="text-6xl md:text-8xl font-bold mb-8 tracking-tight">The <span class="gradient-text">Quantum</span> Era</h1>
+            <p class="text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed">
+                Huntsville is evolving. We're using the laws of subatomic physics to solve challenges that would take traditional supercomputers thousands of years.
+            </p>
+            
+            <!-- Custom SVG Graphic -->
+            <div class="flex justify-center mb-12">
+                <svg width="200" height="200" viewBox="0 0 100 100">
+                    <defs>
+                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:1" />
+                            <stop offset="100%" style="stop-color:#818cf8;stop-opacity:1" />
+                        </linearGradient>
+                    </defs>
+                    <circle cx="50" cy="50" r="40" stroke="url(#grad1)" stroke-width="0.5" fill="none" stroke-dasharray="4" />
+                    <g transform="translate(50,50)">
+                        <path d="M-30,0 A30,30 0 1,0 30,0 A30,30 0 1,0 -30,0" fill="none" stroke="url(#grad1)" stroke-width="2">
+                            <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="10s" repeatCount="indefinite" />
+                        </path>
+                        <circle cx="0" cy="0" r="5" fill="#38bdf8">
+                            <animate attributeName="r" values="4;7;4" dur="2s" repeatCount="indefinite" />
+                        </circle>
+                    </g>
+                </svg>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: What is Quantum Computing -->
+    <section id="intro" class="py-24 container mx-auto px-6">
+        <div class="glass-panel p-12">
+            <div class="grid md:grid-cols-2 gap-12 items-center">
+                <div>
+                    <h2 class="text-4xl font-bold mb-6">What is <span class="text-sky-400">Quantum?</span></h2>
+                    <p class="text-slate-300 mb-4 leading-relaxed">
+                        Classical computers use **bits**—like a light switch that is either ON (1) or OFF (0). 
+                    </p>
+                    <p class="text-slate-300 mb-6 leading-relaxed">
+                        Quantum computers use **qubits**. Because of quantum physics, these qubits can represent a complex mix of 1 and 0 at the same time. This doesn't just make them faster; it makes them capable of shortcutting math problems that are currently "unsolvable."
+                    </p>
+                    <div class="flex space-x-4">
+                        <div class="p-4 bg-slate-800/50 rounded-lg">
+                            <span class="block text-sky-400 font-bold text-xl">10,000 Years</span>
+                            <span class="text-xs text-slate-400 uppercase">Classical Time</span>
+                        </div>
+                        <div class="p-4 bg-sky-500/20 rounded-lg border border-sky-500/50">
+                            <span class="block text-sky-400 font-bold text-xl">200 Seconds</span>
+                            <span class="text-xs text-slate-400 uppercase">Quantum Time</span>
+                        </div>
+                    </div>
+                </div>
+                <div class="bg-slate-900/50 rounded-2xl p-8 border border-slate-800">
+                    <h4 class="font-bold mb-4 flex items-center"><i class="fa-solid fa-microchip text-sky-400 mr-2"></i> Real-World Impact</h4>
+                    <ul class="space-y-4 text-sm text-slate-400">
+                        <li class="flex items-start"><i class="fa-solid fa-check text-sky-500 mt-1 mr-3"></i> <strong>Drug Discovery:</strong> Simulating molecules for new cures.</li>
+                        <li class="flex items-start"><i class="fa-solid fa-check text-sky-500 mt-1 mr-3"></i> <strong>Climate:</strong> Designing better batteries and carbon-capture tech.</li>
+                        <li class="flex items-start"><i class="fa-solid fa-check text-sky-500 mt-1 mr-3"></i> <strong>Finance:</strong> Optimizing global markets in real-time.</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Key Concepts (Interactive Lab) -->
+    <section id="concepts" class="py-24 container mx-auto px-6">
+        <h2 class="text-4xl font-bold text-center mb-16">Key Concepts</h2>
+        <div class="grid md:grid-cols-2 gap-8">
+            <!-- Superposition -->
+            <div class="glass-panel p-10 text-center hover-glow transition-all">
+                <div class="mb-6 flex justify-center">
+                    <div id="coin" class="w-20 h-20 bg-gradient-to-tr from-sky-400 to-blue-600 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(56,189,248,0.5)] coin-spin">
+                        <i class="fa-solid fa-q text-white" id="coin-icon"></i>
+                    </div>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Superposition</h3>
+                <p class="text-slate-400 mb-6 text-sm">A particle exists in all possible states until observed. Click below to "measure" the qubit.</p>
+                <div id="coin-status" class="mb-4 text-sky-400 font-mono text-sm uppercase font-bold tracking-widest">State: [0 AND 1]</div>
+                <button onclick="toggleSuperposition()" id="super-btn" class="bg-sky-500/20 text-sky-400 border border-sky-400 px-6 py-2 rounded-lg font-bold hover:bg-sky-400 hover:text-white transition">Measure State</button>
+            </div>
+
+            <!-- Entanglement -->
+            <div class="glass-panel p-10 text-center hover-glow transition-all">
+                <div class="mb-6 flex justify-center space-x-12">
+                    <div class="entangled-pair w-12 h-12 bg-sky-500 rounded-full animate-pulse"></div>
+                    <div class="entangled-pair w-12 h-12 bg-sky-500 rounded-full animate-pulse"></div>
+                </div>
+                <h3 class="text-2xl font-bold mb-2">Entanglement</h3>
+                <p class="text-slate-400 mb-6 text-sm">Two particles share a single fate. Change one, and the other reacts instantly, regardless of distance.</p>
+                <div class="flex justify-center space-x-3">
+                    <button onclick="changeSyncColor('text-sky-400')" class="w-8 h-8 rounded-full bg-sky-400 border-2 border-white/20"></button>
+                    <button onclick="changeSyncColor('text-pink-400')" class="w-8 h-8 rounded-full bg-pink-400 border-2 border-white/20"></button>
+                    <button onclick="changeSyncColor('text-emerald-400')" class="w-8 h-8 rounded-full bg-emerald-400 border-2 border-white/20"></button>
+                </div>
+                <p id="sync-msg" class="mt-4 text-xs font-mono text-sky-400 uppercase">Status: Correlated</p>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Alabama Connections -->
+    <section id="huntsville" class="py-24 bg-slate-900/40">
+        <div class="container mx-auto px-6">
+            <h2 class="text-4xl font-bold text-center mb-16">The <span class="text-sky-400">Alabama</span> Connection</h2>
+            <div class="grid lg:grid-cols-3 gap-8">
+                <div class="p-8 bg-slate-800/30 rounded-2xl border border-slate-700">
+                    <h4 class="font-bold text-xl mb-4 text-sky-400">UAH & SQC</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed">The Southeastern Quantum Collaborative (SQC), based at UAH, is building the workforce for the 2026 quantum economy.</p>
+                </div>
+                <div class="p-8 bg-slate-800/30 rounded-2xl border border-slate-700">
+                    <h4 class="font-bold text-xl mb-4 text-sky-400">Redstone Arsenal</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed">The Army and FBI use quantum-safe encryption standards (NIST 2024) to protect national intelligence right here in HSV.</p>
+                </div>
+                <div class="p-8 bg-slate-800/30 rounded-2xl border border-slate-700">
+                    <h4 class="font-bold text-xl mb-4 text-sky-400">Davidson Tech</h4>
+                    <p class="text-sm text-slate-400 leading-relaxed">Using D-Wave quantum annealing to simulate missile defense scenarios 10x faster than traditional methods.</p>
+                </div>
+            </div>
+        </div>
+    </section>
+
+    <!-- Section: Podcast Embed -->
+    <section id="podcast" class="py-24 container mx-auto px-6">
+        <div class="max-w-4xl mx-auto glass-panel p-10 text-center border-2 border-sky-500/20">
+            <h2 class="text-3xl font-bold mb-4">The Deep Dive Podcast</h2>
+            <p class="text-slate-400 mb-8 italic">"Exploring the Alabama Quantum Shift" — A NotebookLM Conversation</p>
+            
+            <div class="bg-slate-950 p-8 rounded-2xl border border-slate-800 shadow-inner">
+                <i class="fa-solid fa-circle-play text-5xl text-sky-500 mb-6 block"></i>
+                <!-- Audio Tag Requirement -->
+                <audio id="player" controls class="w-full h-12">
+                    <source src="YOUR_PODCAST_URL_HERE.mp3" type="audio/mpeg">
+                    <p class="text-xs text-slate-500">Your browser does not support the audio element. Replace source with your NotebookLM link.</p>
+                </audio>
+            </div>
+            <p class="mt-6 text-[10px] text-slate-600 uppercase tracking-widest">© 2026 Alabama Educational Media</p>
+        </div>
+    </section>
+
+    <!-- Section: Curated Links -->
+    <section id="resources" class="py-24 container mx-auto px-6">
+        <h3 class="text-2xl font-bold mb-10 text-center">Resources & Links</h3>
+        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
+            <a href="https://www.ibm.com/quantum" target="_blank" class="glass-panel p-6 text-center hover:bg-sky-500/10 transition">
+                <span class="text-sm font-bold">IBM Quantum</span>
+            </a>
+            <a href="https://quantumai.google/" target="_blank" class="glass-panel p-6 text-center hover:bg-sky-500/10 transition">
+                <span class="text-sm font-bold">Google Quantum AI</span>
+            </a>
+            <a href="https://www.uah.edu/science/departments/physics" target="_blank" class="glass-panel p-6 text-center hover:bg-sky-500/10 transition">
+                <span class="text-sm font-bold">UAH Physics</span>
+            </a>
+            <a href="https://csrc.nist.gov/projects/post-quantum-cryptography" target="_blank" class="glass-panel p-6 text-center hover:bg-sky-500/10 transition">
+                <span class="text-sm font-bold">NIST Post-Quantum</span>
+            </a>
+            <a href="https://quantumcomputingreport.com/" target="_blank" class="glass-panel p-6 text-center hover:bg-sky-500/10 transition">
+                <span class="text-sm font-bold">Quantum Report</span>
+            </a>
+        </div>
+    </section>
+
+    <!-- Footer -->
+    <footer class="py-12 border-t border-slate-800 text-center">
+        <p class="text-slate-500 text-xs tracking-widest uppercase mb-4">
+            Quantum North Alabama Initiative | 2026
+        </p>
+        <div class="flex justify-center space-x-6 text-slate-600">
+            <i class="fa-brands fa-github"></i>
+            <i class="fa-brands fa-linkedin"></i>
+            <i class="fa-brands fa-x-twitter"></i>
+        </div>
+    </footer>
+
+    <!-- Scripts -->
+    <script>
+        let inSuperposition = true;
+        const coin = document.getElementById('coin');
+        const coinStatus = document.getElementById('coin-status');
+        const superBtn = document.getElementById('super-btn');
+        const coinIcon = document.getElementById('coin-icon');
+
+        function toggleSuperposition() {
+            if (inSuperposition) {
+                coin.classList.remove('coin-spin');
+                const outcome = Math.random() > 0.5 ? '1' : '0';
+                coinStatus.innerText = `Observed State: [${outcome}]`;
+                coinIcon.className = `fa-solid fa-${outcome}`;
+                superBtn.innerText = "Reset System";
+                inSuperposition = false;
+            } else {
+                coin.classList.add('coin-spin');
+                coinStatus.innerText = "State: [0 AND 1]";
+                coinIcon.className = "fa-solid fa-q";
+                superBtn.innerText = "Measure State";
+                inSuperposition = true;
+            }
+        }
+
+        function changeSyncColor(colorClass) {
+            const pairs = document.querySelectorAll('.entangled-pair');
+            pairs.forEach(p => {
+                p.classList.remove('bg-sky-400', 'bg-pink-400', 'bg-emerald-400');
+                const bgClass = colorClass.replace('text', 'bg');
+                p.classList.add(bgClass);
+            });
+            document.getElementById('sync-msg').className = `mt-4 text-xs font-mono ${colorClass} uppercase`;
+            document.getElementById('sync-msg').innerText = "INSTANT SYNC ACTIVE";
+        }
+    </script>
+</body>
+</html>
