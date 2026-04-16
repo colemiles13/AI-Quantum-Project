@@ -3,285 +3,706 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Quantum North Alabama | The Future of Computing</title>
+    <title>Quantum North Alabama | The Future of STEM</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r128/three.min.js"></script>
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.0.0/css/all.min.css">
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap');
+        @import url('https://fonts.googleapis.com/css2?family=Space+Grotesk:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;700&display=swap');
         
         :root {
             --sky-glow: #38bdf8;
-            --space-bg: #020617;
+            --space-bg: #030712;
         }
 
         body {
-            font-family: 'Inter', sans-serif;
+            font-family: 'Space Grotesk', sans-serif;
             background-color: var(--space-bg);
             color: #f1f5f9;
             scroll-behavior: smooth;
+            overflow-x: hidden;
         }
 
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.4);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.1);
+        .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+        .glass-card {
+            background: rgba(17, 24, 39, 0.6);
+            backdrop-filter: blur(12px) saturate(180%);
+            border: 1px solid rgba(255, 255, 255, 0.08);
             border-radius: 1.5rem;
+            transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
         }
 
-        /* Interactive Coin Flip CSS */
-        .coin-spin {
-            animation: spin 0.2s linear infinite;
-        }
-        @keyframes spin {
-            100% { transform: rotateY(360deg); }
+        .glass-card:hover {
+            border-color: rgba(56, 189, 248, 0.4);
+            background: rgba(17, 24, 39, 0.8);
+            transform: translateY(-5px);
+            box-shadow: 0 10px 30px -10px rgba(56, 189, 248, 0.2);
         }
 
-        .hover-glow:hover {
-            box-shadow: 0 0 30px rgba(56, 189, 248, 0.3);
-            border-color: var(--sky-glow);
+        .mesh-bg {
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: 
+                radial-gradient(at 0% 0%, rgba(56, 189, 248, 0.1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, rgba(139, 92, 246, 0.1) 0px, transparent 50%);
+            z-index: -1;
         }
 
         .gradient-text {
-            background: linear-gradient(90deg, #38bdf8, #818cf8);
+            background: linear-gradient(to right, #38bdf8, #818cf8, #c084fc);
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+        }
+
+        .reveal { opacity: 0; transform: translateY(30px); transition: all 0.8s ease-out; }
+        .reveal.active { opacity: 1; transform: translateY(0); }
+
+        .ticker-wrap {
+            background: rgba(3, 7, 18, 0.95);
+            border-bottom: 1px solid rgba(56, 189, 248, 0.1);
+            overflow: hidden;
+        }
+        .ticker {
+            display: inline-block;
+            white-space: nowrap;
+            animation: ticker-move 40s linear infinite;
+        }
+        @keyframes ticker-move {
+            0% { transform: translateX(100%); }
+            100% { transform: translateX(-100%); }
+        }
+
+        canvas#bloch-sphere {
+            width: 100% !important;
+            height: 300px !important;
+            border-radius: 1rem;
+        }
+
+        .circuit-line {
+            height: 4px;
+            background: rgba(255,255,255,0.05);
+            position: relative;
+            border-radius: 4px;
+        }
+        .gate {
+            cursor: pointer;
+            transition: all 0.2s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            user-select: none;
+        }
+        .gate:hover { transform: scale(1.1); filter: brightness(1.2); }
+        .gate:active { transform: scale(0.95); }
+
+        .tab-content { display: none; }
+        .tab-content.active { display: block; animation: fadeIn 0.5s ease; }
+        
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .nav-btn {
+            position: relative;
+            padding-bottom: 4px;
+        }
+        .nav-btn.active::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 25%;
+            width: 50%;
+            height: 2px;
+            background: #38bdf8;
+            border-radius: 2px;
+        }
+
+        #hero-canvas {
+            position: absolute;
+            top: 0;
+            left: 0;
+            z-index: -1;
+            opacity: 0.5;
         }
     </style>
 </head>
 <body class="selection:bg-sky-500/30">
+    <div class="mesh-bg"></div>
+    <canvas id="hero-canvas"></canvas>
 
-    <!-- Navbar -->
-    <nav class="fixed w-full z-50 top-0 bg-slate-950/80 backdrop-blur-md border-b border-slate-800">
-        <div class="container mx-auto px-6 py-4 flex justify-between items-center">
-            <div class="flex items-center space-x-2">
-                <div class="w-8 h-8 bg-sky-500 rounded-lg flex items-center justify-center">
+    <!-- Live Status Ticker -->
+    <div class="ticker-wrap fixed top-0 w-full z-[100] py-2">
+        <div class="ticker text-[10px] font-bold uppercase tracking-[0.2em] text-sky-400">
+            [STEM-UPDATE] Huntsville High Quantum Robotics wins regional • [UAH] New Qubit Cooling system online • [CAREERS] 500+ new Quantum Analyst roles projected for 2027 • [SCIENCE] Photonic entanglement achieved at 10km • [NASA] Marshall Space Flight Center exploring quantum nav • [LOCAL] Quantum Summer Camp apps open Monday •
+        </div>
+    </div>
+
+    <!-- Navigation -->
+    <nav class="fixed top-12 left-0 w-full z-50 px-4">
+        <div class="max-w-6xl mx-auto glass-card !rounded-full py-3 px-8 flex justify-between items-center shadow-2xl border-white/20">
+            <div class="flex items-center space-x-3 cursor-pointer" onclick="showTab('main')">
+                <div class="w-8 h-8 bg-sky-500 rounded-full flex items-center justify-center animate-pulse">
                     <i class="fa-solid fa-atom text-white text-xs"></i>
                 </div>
-                <span class="text-xl font-bold tracking-tight">QUANTUM<span class="text-sky-400">HSV</span></span>
+                <span class="text-lg font-bold tracking-tight">Quantum<span class="text-sky-400">HSV</span></span>
             </div>
-            <div class="hidden lg:flex space-x-6 items-center">
-                <a href="#intro" class="text-sm font-medium hover:text-sky-400 transition">What is QC?</a>
-                <a href="#concepts" class="text-sm font-medium hover:text-sky-400 transition">Concepts</a>
-                <a href="#huntsville" class="text-sm font-medium hover:text-sky-400 transition">Alabama Hub</a>
-                <a href="#podcast" class="text-sm font-medium hover:text-sky-400 transition">Podcast</a>
-                <a href="#resources" class="bg-sky-500 hover:bg-sky-600 px-5 py-2 rounded-full text-sm font-bold transition">Resources</a>
+            <div class="flex space-x-4 md:space-x-8">
+                <button id="btn-main" onclick="showTab('main')" class="nav-btn active text-[10px] font-bold uppercase tracking-widest hover:text-sky-400 transition">Hub</button>
+                <button id="btn-glossary" onclick="showTab('glossary')" class="nav-btn text-[10px] font-bold uppercase tracking-widest hover:text-sky-400 transition">Glossary</button>
+                <button id="btn-resources" onclick="showTab('resources')" class="nav-btn text-[10px] font-bold uppercase tracking-widest hover:text-sky-400 transition">Library</button>
+                <button id="btn-podcast" onclick="showTab('podcast')" class="nav-btn text-[10px] font-bold uppercase tracking-widest hover:text-sky-400 transition">Podcast</button>
             </div>
         </div>
     </nav>
 
-    <!-- Hero Section -->
-    <section class="relative pt-40 pb-24 overflow-hidden">
-        <div class="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-[400px] bg-sky-500/10 blur-[120px] rounded-full -z-10"></div>
-        <div class="container mx-auto px-6 text-center">
-            <span class="px-4 py-1.5 rounded-full border border-sky-500/30 bg-sky-500/5 text-sky-400 text-xs font-bold uppercase tracking-widest mb-6 inline-block">
-                The New Frontier of North Alabama
-            </span>
-            <h1 class="text-6xl md:text-8xl font-bold mb-8 tracking-tight">The <span class="gradient-text">Quantum</span> Era</h1>
-            <p class="text-xl text-slate-400 max-w-2xl mx-auto mb-12 leading-relaxed">
-                Huntsville is evolving. We're using the laws of subatomic physics to solve challenges that would take traditional supercomputers thousands of years.
-            </p>
-            
-            <!-- Custom SVG Graphic -->
-            <div class="flex justify-center mb-12">
-                <svg width="200" height="200" viewBox="0 0 100 100">
-                    <defs>
-                        <linearGradient id="grad1" x1="0%" y1="0%" x2="100%" y2="100%">
-                            <stop offset="0%" style="stop-color:#38bdf8;stop-opacity:1" />
-                            <stop offset="100%" style="stop-color:#818cf8;stop-opacity:1" />
-                        </linearGradient>
-                    </defs>
-                    <circle cx="50" cy="50" r="40" stroke="url(#grad1)" stroke-width="0.5" fill="none" stroke-dasharray="4" />
-                    <g transform="translate(50,50)">
-                        <path d="M-30,0 A30,30 0 1,0 30,0 A30,30 0 1,0 -30,0" fill="none" stroke="url(#grad1)" stroke-width="2">
-                            <animateTransform attributeName="transform" type="rotate" from="0" to="360" dur="10s" repeatCount="indefinite" />
-                        </path>
-                        <circle cx="0" cy="0" r="5" fill="#38bdf8">
-                            <animate attributeName="r" values="4;7;4" dur="2s" repeatCount="indefinite" />
-                        </circle>
-                    </g>
-                </svg>
+    <!-- TAB: MAIN HUB -->
+    <div id="tab-main" class="tab-content active">
+        <header class="relative pt-48 pb-24 px-6 overflow-hidden">
+            <div class="max-w-5xl mx-auto text-center relative z-10">
+                <div class="inline-block px-4 py-1 rounded-full border border-sky-500/30 bg-sky-500/10 text-sky-400 text-[10px] font-bold uppercase tracking-widest mb-8">
+                    Official Rocket City Student Science Hub
+                </div>
+                <h1 class="text-5xl md:text-7xl font-black mb-8 leading-tight tracking-tighter">
+                    Explore the <br> <span class="gradient-text">Subatomic Frontier.</span>
+                </h1>
+                <p class="text-lg text-slate-400 max-w-2xl mx-auto mb-10 font-light leading-relaxed">
+                    Huntsville put humanity on the moon. Now, we're mastering the laws of the universe to build computers that can solve the world's hardest problems.
+                </p>
+                
+                <div class="grid grid-cols-2 md:grid-cols-4 gap-4 max-w-4xl mx-auto mt-12 mb-16">
+                    <div onclick="showTab('glossary')" class="glass-card p-6 cursor-pointer group hover:bg-sky-500/5">
+                        <i class="fa-solid fa-book text-sky-400 mb-3 block text-xl group-hover:scale-110 transition"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest">Glossary</span>
+                    </div>
+                    <div onclick="showTab('podcast')" class="glass-card p-6 cursor-pointer group hover:bg-rose-500/5">
+                        <i class="fa-solid fa-play text-rose-400 mb-3 block text-xl group-hover:scale-110 transition"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest">Podcast</span>
+                    </div>
+                    <div onclick="scrollToId('lab')" class="glass-card p-6 cursor-pointer group hover:bg-emerald-500/5">
+                        <i class="fa-solid fa-flask text-emerald-400 mb-3 block text-xl group-hover:scale-110 transition"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest">Lab</span>
+                    </div>
+                    <div onclick="showTab('resources')" class="glass-card p-6 cursor-pointer group hover:bg-indigo-500/5">
+                        <i class="fa-solid fa-link text-indigo-400 mb-3 block text-xl group-hover:scale-110 transition"></i>
+                        <span class="text-[10px] font-bold uppercase tracking-widest">Resources</span>
+                    </div>
+                </div>
             </div>
-        </div>
-    </section>
+        </header>
 
-    <!-- Section: What is Quantum Computing -->
-    <section id="intro" class="py-24 container mx-auto px-6">
-        <div class="glass-panel p-12">
-            <div class="grid md:grid-cols-2 gap-12 items-center">
+        <!-- Career Path Section -->
+        <section class="py-20 bg-slate-900/50 reveal">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold uppercase tracking-tighter mb-4">Future <span class="text-sky-400">Career Paths</span></h2>
+                    <p class="text-slate-400 text-sm">Where can quantum computing take you in North Alabama?</p>
+                </div>
+                <div class="grid md:grid-cols-3 gap-6">
+                    <div class="glass-card p-8 border-none bg-white/5 hover:bg-sky-500/10 transition-colors">
+                        <i class="fa-solid fa-satellite text-2xl text-sky-400 mb-4"></i>
+                        <h4 class="font-bold mb-2">Aerospace Systems</h4>
+                        <p class="text-xs text-slate-400">Work at NASA or Redstone Arsenal designing quantum-enhanced navigation systems for deep-space exploration.</p>
+                    </div>
+                    <div class="glass-card p-8 border-none bg-white/5 hover:bg-rose-500/10 transition-colors">
+                        <i class="fa-solid fa-user-shield text-2xl text-rose-400 mb-4"></i>
+                        <h4 class="font-bold mb-2">Cybersecurity</h4>
+                        <p class="text-xs text-slate-400">Protecting national data against future threats with encryption that follows the laws of physics.</p>
+                    </div>
+                    <div class="glass-card p-8 border-none bg-white/5 hover:bg-emerald-500/10 transition-colors">
+                        <i class="fa-solid fa-vial-circle-check text-2xl text-emerald-400 mb-4"></i>
+                        <h4 class="font-bold mb-2">Medical Research</h4>
+                        <p class="text-xs text-slate-400">Simulating molecular interactions to discover life-saving medicines at record speeds.</p>
+                    </div>
+                </div>
+            </div>
+        </section>
+
+        <!-- Visual Qubit Section -->
+        <section id="lab" class="py-20 container mx-auto px-6 reveal">
+            <div class="grid lg:grid-cols-2 gap-12 items-center">
+                <div class="glass-card p-8 text-center relative overflow-hidden bg-slate-900/40">
+                    <div class="absolute top-4 left-6 text-[10px] font-bold text-sky-500/50 uppercase tracking-widest">Live Qubit Simulator</div>
+                    <canvas id="bloch-sphere"></canvas>
+                    <div class="mt-4 flex justify-center gap-2">
+                        <button onclick="rotateTo('0')" class="px-4 py-2 bg-slate-800 rounded-lg text-xs font-bold hover:bg-sky-500 transition shadow-lg">|0⟩ Ground</button>
+                        <button onclick="rotateTo('1')" class="px-4 py-2 bg-slate-800 rounded-lg text-xs font-bold hover:bg-sky-500 transition shadow-lg">|1⟩ Excited</button>
+                        <button onclick="rotateTo('H')" class="px-4 py-2 bg-sky-500/20 text-sky-400 border border-sky-500/30 rounded-lg text-xs font-bold hover:bg-sky-500/40 transition">|+⟩ Superposition</button>
+                    </div>
+                </div>
                 <div>
-                    <h2 class="text-4xl font-bold mb-6">What is <span class="text-sky-400">Quantum?</span></h2>
-                    <p class="text-slate-300 mb-4 leading-relaxed">
-                        Classical computers use **bits**—like a light switch that is either ON (1) or OFF (0). 
-                    </p>
-                    <p class="text-slate-300 mb-6 leading-relaxed">
-                        Quantum computers use **qubits**. Because of quantum physics, these qubits can represent a complex mix of 1 and 0 at the same time. This doesn't just make them faster; it makes them capable of shortcutting math problems that are currently "unsolvable."
-                    </p>
-                    <div class="flex space-x-4">
-                        <div class="p-4 bg-slate-800/50 rounded-lg">
-                            <span class="block text-sky-400 font-bold text-xl">10,000 Years</span>
-                            <span class="text-xs text-slate-400 uppercase">Classical Time</span>
+                    <h2 class="text-4xl font-bold mb-6 tracking-tighter uppercase">Meet the <span class="text-sky-400">Qubit</span></h2>
+                    <p class="text-slate-400 leading-relaxed mb-6">Standard bits are like light switches—on or off. Qubits are like light dimmers, but in 3D. They can exist in a <strong>Superposition</strong>, represented by any point on the surface of this sphere.</p>
+                    <div class="space-y-4">
+                        <div class="flex items-start space-x-4">
+                            <div class="w-10 h-10 rounded-full bg-sky-500/10 flex items-center justify-center shrink-0 border border-sky-500/20">
+                                <span class="text-sky-400 font-bold">1</span>
+                            </div>
+                            <p class="text-sm text-slate-400"><strong class="text-white">State |0⟩:</strong> Represents the North Pole. Traditional computer bit 'off'.</p>
                         </div>
-                        <div class="p-4 bg-sky-500/20 rounded-lg border border-sky-500/50">
-                            <span class="block text-sky-400 font-bold text-xl">200 Seconds</span>
-                            <span class="text-xs text-slate-400 uppercase">Quantum Time</span>
+                        <div class="flex items-start space-x-4">
+                            <div class="w-10 h-10 rounded-full bg-sky-500/10 flex items-center justify-center shrink-0 border border-sky-500/20">
+                                <span class="text-sky-400 font-bold">2</span>
+                            </div>
+                            <p class="text-sm text-slate-400"><strong class="text-white">State |1⟩:</strong> Represents the South Pole. Traditional computer bit 'on'.</p>
                         </div>
                     </div>
                 </div>
-                <div class="bg-slate-900/50 rounded-2xl p-8 border border-slate-800">
-                    <h4 class="font-bold mb-4 flex items-center"><i class="fa-solid fa-microchip text-sky-400 mr-2"></i> Real-World Impact</h4>
-                    <ul class="space-y-4 text-sm text-slate-400">
-                        <li class="flex items-start"><i class="fa-solid fa-check text-sky-500 mt-1 mr-3"></i> <strong>Drug Discovery:</strong> Simulating molecules for new cures.</li>
-                        <li class="flex items-start"><i class="fa-solid fa-check text-sky-500 mt-1 mr-3"></i> <strong>Climate:</strong> Designing better batteries and carbon-capture tech.</li>
-                        <li class="flex items-start"><i class="fa-solid fa-check text-sky-500 mt-1 mr-3"></i> <strong>Finance:</strong> Optimizing global markets in real-time.</li>
-                    </ul>
-                </div>
             </div>
-        </div>
-    </section>
+        </section>
 
-    <!-- Section: Key Concepts (Interactive Lab) -->
-    <section id="concepts" class="py-24 container mx-auto px-6">
-        <h2 class="text-4xl font-bold text-center mb-16">Key Concepts</h2>
-        <div class="grid md:grid-cols-2 gap-8">
-            <!-- Superposition -->
-            <div class="glass-panel p-10 text-center hover-glow transition-all">
-                <div class="mb-6 flex justify-center">
-                    <div id="coin" class="w-20 h-20 bg-gradient-to-tr from-sky-400 to-blue-600 rounded-full flex items-center justify-center text-3xl shadow-[0_0_20px_rgba(56,189,248,0.5)] coin-spin">
-                        <i class="fa-solid fa-q text-white" id="coin-icon"></i>
+        <!-- Circuit Builder -->
+        <section id="logic" class="py-20 bg-slate-900/30 reveal">
+            <div class="container mx-auto px-6">
+                <div class="text-center mb-12">
+                    <h2 class="text-3xl font-bold uppercase tracking-tighter mb-4">Quantum <span class="text-indigo-400">Circuit Builder</span></h2>
+                    <p class="text-xs text-slate-500 uppercase tracking-widest">Click gates to manipulate the qubit's quantum state</p>
+                </div>
+                <div class="max-w-4xl mx-auto glass-card p-8 border-indigo-500/20">
+                    <div class="flex items-center space-x-6 mb-16 relative">
+                        <div class="font-mono text-xl text-indigo-400 font-bold">q[0]</div>
+                        <div class="flex-grow circuit-line flex items-center px-4 space-x-12">
+                            <div id="gate-slot-1" class="w-14 h-14 bg-slate-800 rounded-lg flex items-center justify-center font-bold text-white shadow-xl gate border border-white/5" onclick="toggleGate(1)">-</div>
+                            <div id="gate-slot-2" class="w-14 h-14 bg-slate-800 rounded-lg flex items-center justify-center font-bold text-white shadow-xl gate border border-white/5" onclick="toggleGate(2)">-</div>
+                            <div id="gate-slot-3" class="w-14 h-14 bg-slate-800 rounded-lg flex items-center justify-center font-bold text-white shadow-xl gate border border-white/5" onclick="toggleGate(3)">-</div>
+                        </div>
+                        <div class="w-12 h-12 rounded-full border-2 border-dashed border-slate-700 flex items-center justify-center">
+                            <i class="fa-solid fa-bullseye text-slate-600"></i>
+                        </div>
+                    </div>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="p-6 bg-slate-900/80 rounded-2xl text-center border border-white/5">
+                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-2">Gate Legend</div>
+                            <div class="flex justify-center gap-2">
+                                <span class="px-2 py-1 bg-indigo-600 rounded text-[9px] font-bold">X: Flip</span>
+                                <span class="px-2 py-1 bg-indigo-600 rounded text-[9px] font-bold">H: Superpose</span>
+                                <span class="px-2 py-1 bg-indigo-600 rounded text-[9px] font-bold">Z: Phase</span>
+                            </div>
+                        </div>
+                        <div class="p-6 bg-slate-900/80 rounded-2xl text-center border border-indigo-500/20">
+                            <div class="text-[10px] text-slate-500 uppercase font-bold mb-1">State Probability</div>
+                            <div id="prob-display" class="text-lg font-bold text-emerald-400">100% |0⟩</div>
+                        </div>
+                        <button onclick="resetCircuit()" class="w-full py-3 bg-indigo-500/10 border border-indigo-500/30 rounded-2xl text-indigo-400 font-bold text-xs uppercase hover:bg-indigo-500/20 transition group">
+                            <i class="fa-solid fa-rotate-left mr-2 group-hover:rotate-180 transition-transform duration-500"></i> Reset System
+                        </button>
                     </div>
                 </div>
-                <h3 class="text-2xl font-bold mb-2">Superposition</h3>
-                <p class="text-slate-400 mb-6 text-sm">A particle exists in all possible states until observed. Click below to "measure" the qubit.</p>
-                <div id="coin-status" class="mb-4 text-sky-400 font-mono text-sm uppercase font-bold tracking-widest">State: [0 AND 1]</div>
-                <button onclick="toggleSuperposition()" id="super-btn" class="bg-sky-500/20 text-sky-400 border border-sky-400 px-6 py-2 rounded-lg font-bold hover:bg-sky-400 hover:text-white transition">Measure State</button>
             </div>
+        </section>
+    </div>
 
-            <!-- Entanglement -->
-            <div class="glass-panel p-10 text-center hover-glow transition-all">
-                <div class="mb-6 flex justify-center space-x-12">
-                    <div class="entangled-pair w-12 h-12 bg-sky-500 rounded-full animate-pulse"></div>
-                    <div class="entangled-pair w-12 h-12 bg-sky-500 rounded-full animate-pulse"></div>
-                </div>
-                <h3 class="text-2xl font-bold mb-2">Entanglement</h3>
-                <p class="text-slate-400 mb-6 text-sm">Two particles share a single fate. Change one, and the other reacts instantly, regardless of distance.</p>
-                <div class="flex justify-center space-x-3">
-                    <button onclick="changeSyncColor('text-sky-400')" class="w-8 h-8 rounded-full bg-sky-400 border-2 border-white/20"></button>
-                    <button onclick="changeSyncColor('text-pink-400')" class="w-8 h-8 rounded-full bg-pink-400 border-2 border-white/20"></button>
-                    <button onclick="changeSyncColor('text-emerald-400')" class="w-8 h-8 rounded-full bg-emerald-400 border-2 border-white/20"></button>
-                </div>
-                <p id="sync-msg" class="mt-4 text-xs font-mono text-sky-400 uppercase">Status: Correlated</p>
+    <!-- TAB: GLOSSARY -->
+    <div id="tab-glossary" class="tab-content pt-48 pb-24 px-6 container mx-auto">
+        <div class="text-center mb-12">
+            <h2 class="text-5xl font-black uppercase tracking-tighter mb-4">The <span class="text-sky-400">Glossary</span></h2>
+            <div class="max-w-md mx-auto relative mb-12">
+                <input type="text" id="glossary-search" placeholder="Search for a term..." class="w-full bg-white/5 border border-white/10 rounded-xl px-4 py-3 text-sm focus:outline-none focus:border-sky-500 transition" onkeyup="filterGlossary()">
+                <i class="fa-solid fa-search absolute right-4 top-3.5 text-slate-500"></i>
             </div>
         </div>
-    </section>
+        
+        <div class="grid lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <div id="glossary-container" class="lg:col-span-2 space-y-4">
+                <div class="glass-card p-6 glossary-item" data-term="qubit quantum bit">
+                    <h3 class="font-bold text-xl mb-2 transition text-sky-400">Qubit</h3>
+                    <p class="text-slate-400 text-sm">The basic unit of quantum information. Unlike a binary bit (0 or 1), a qubit can exist in multiple states at once thanks to superposition.</p>
+                </div>
+                <div class="glass-card p-6 glossary-item" data-term="superposition">
+                    <h3 class="font-bold text-xl mb-2 transition text-sky-400">Superposition</h3>
+                    <p class="text-slate-400 text-sm">A fundamental principle where a quantum system can be in multiple states simultaneously until it is observed or measured.</p>
+                </div>
+                <div class="glass-card p-6 glossary-item" data-term="entanglement spookie action">
+                    <h3 class="font-bold text-xl mb-2 transition text-sky-400">Entanglement</h3>
+                    <p class="text-slate-400 text-sm">Einstein called this "spooky action at a distance." Two particles become linked so that measuring one instantly tells you the state of the other, no matter the distance.</p>
+                </div>
+                <div class="glass-card p-6 glossary-item" data-term="decoherence noise">
+                    <h3 class="font-bold text-xl mb-2 transition text-sky-400">Decoherence</h3>
+                    <p class="text-slate-400 text-sm">The "enemy" of quantum computers. It happens when outside heat or vibration causes the qubit to lose its quantum state and turn back into a normal bit.</p>
+                </div>
+            </div>
 
-    <!-- Section: Alabama Connections -->
-    <section id="huntsville" class="py-24 bg-slate-900/40">
-        <div class="container mx-auto px-6">
-            <h2 class="text-4xl font-bold text-center mb-16">The <span class="text-sky-400">Alabama</span> Connection</h2>
-            <div class="grid lg:grid-cols-3 gap-8">
-                <div class="p-8 bg-slate-800/30 rounded-2xl border border-slate-700">
-                    <h4 class="font-bold text-xl mb-4 text-sky-400">UAH & SQC</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">The Southeastern Quantum Collaborative (SQC), based at UAH, is building the workforce for the 2026 quantum economy.</p>
+            <!-- Quiz Component -->
+            <div class="glass-card p-8 h-fit sticky top-48 border-emerald-500/20">
+                <h4 class="font-bold text-lg mb-4 flex items-center">
+                    <i class="fa-solid fa-graduation-cap text-emerald-400 mr-2"></i> Quick Quiz
+                </h4>
+                <div id="quiz-area">
+                    <p id="quiz-question" class="text-sm text-slate-300 mb-6">What property allows a qubit to be 0 and 1 at the same time?</p>
+                    <div class="space-y-2">
+                        <button onclick="checkAnswer(this, false)" class="w-full p-3 text-left text-xs bg-white/5 rounded-lg hover:bg-white/10 transition">Entanglement</button>
+                        <button onclick="checkAnswer(this, true)" class="w-full p-3 text-left text-xs bg-white/5 rounded-lg hover:bg-white/10 transition">Superposition</button>
+                        <button onclick="checkAnswer(this, false)" class="w-full p-3 text-left text-xs bg-white/5 rounded-lg hover:bg-white/10 transition">Decoherence</button>
+                    </div>
                 </div>
-                <div class="p-8 bg-slate-800/30 rounded-2xl border border-slate-700">
-                    <h4 class="font-bold text-xl mb-4 text-sky-400">Redstone Arsenal</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">The Army and FBI use quantum-safe encryption standards (NIST 2024) to protect national intelligence right here in HSV.</p>
-                </div>
-                <div class="p-8 bg-slate-800/30 rounded-2xl border border-slate-700">
-                    <h4 class="font-bold text-xl mb-4 text-sky-400">Davidson Tech</h4>
-                    <p class="text-sm text-slate-400 leading-relaxed">Using D-Wave quantum annealing to simulate missile defense scenarios 10x faster than traditional methods.</p>
+                <div id="quiz-feedback" class="hidden mt-4 text-center">
+                    <p id="feedback-text" class="text-xs font-bold mb-4"></p>
+                    <button onclick="nextQuestion()" class="text-xs uppercase tracking-widest text-emerald-400 hover:underline">Next Question</button>
                 </div>
             </div>
         </div>
-    </section>
+    </div>
 
-    <!-- Section: Podcast Embed -->
-    <section id="podcast" class="py-24 container mx-auto px-6">
-        <div class="max-w-4xl mx-auto glass-panel p-10 text-center border-2 border-sky-500/20">
-            <h2 class="text-3xl font-bold mb-4">The Deep Dive Podcast</h2>
-            <p class="text-slate-400 mb-8 italic">"Exploring the Alabama Quantum Shift" — A NotebookLM Conversation</p>
+    <!-- TAB: RESOURCES -->
+    <div id="tab-resources" class="tab-content pt-48 pb-24 px-6 container mx-auto">
+        <div class="text-center mb-16 reveal">
+            <h2 class="text-5xl font-black uppercase tracking-tighter mb-4">Research <span class="text-sky-400">Library</span></h2>
+            <p class="text-slate-400">Trusted resources to help you master quantum science and coding.</p>
+        </div>
+        <div class="grid md:grid-cols-2 lg:grid-cols-3 gap-8 max-w-7xl mx-auto">
+            <!-- Resource 1: IBM -->
+            <a href="https://www.ibm.com/quantum/learning" target="_blank" class="glass-card p-8 group reveal border-sky-500/10">
+                <i class="fa-solid fa-graduation-cap text-3xl text-sky-400 mb-6 block group-hover:scale-110 transition"></i>
+                <h3 class="text-lg font-bold mb-2">IBM Quantum Learning</h3>
+                <p class="text-slate-500 text-xs mb-6 leading-relaxed">The industry standard. Free access to real quantum hardware via the cloud and an interactive textbook for Qiskit.</p>
+                <div class="flex items-center text-[9px] font-bold text-sky-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                    Launch Lab <i class="fa-solid fa-arrow-right ml-2"></i>
+                </div>
+            </a>
             
-            <div class="bg-slate-950 p-8 rounded-2xl border border-slate-800 shadow-inner">
-                <i class="fa-solid fa-circle-play text-5xl text-sky-500 mb-6 block"></i>
-                <!-- Audio Tag Requirement -->
-                <audio id="player" controls class="w-full h-12">
-                    <source src="https://notebooklm.google.com/notebook/c9daf9a0-29d6-46b2-b4eb-6fb49ff8c2d0.mp3" type="audio/mpeg">
-                    <p class="text-xs text-slate-500">Your browser does not support the audio element. Replace source with your NotebookLM link.</p>
-                </audio>
+            <!-- Resource 2: UAH -->
+            <a href="https://www.uah.edu/science/departments/physics" target="_blank" class="glass-card p-8 group reveal">
+                <i class="fa-solid fa-building-columns text-3xl text-sky-400 mb-6 block group-hover:scale-110 transition"></i>
+                <h3 class="text-lg font-bold mb-2">UAH Physics Hub</h3>
+                <p class="text-slate-500 text-xs mb-6 leading-relaxed">Huntsville's own center for research. Explore undergraduate programs and local physics colloquiums.</p>
+                <div class="flex items-center text-[9px] font-bold text-sky-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                    Visit Campus <i class="fa-solid fa-arrow-right ml-2"></i>
+                </div>
+            </a>
+
+            <!-- Resource 3: NASA -->
+            <a href="https://www.nasa.gov/marshall" target="_blank" class="glass-card p-8 group reveal">
+                <i class="fa-solid fa-rocket text-3xl text-sky-400 mb-6 block group-hover:scale-110 transition"></i>
+                <h3 class="text-lg font-bold mb-2">NASA Marshall Space</h3>
+                <p class="text-slate-500 text-xs mb-6 leading-relaxed">See how local engineers use quantum sensors to map the Earth's gravity and navigate the stars.</p>
+                <div class="flex items-center text-[9px] font-bold text-sky-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                    NASA MSFC <i class="fa-solid fa-arrow-right ml-2"></i>
+                </div>
+            </a>
+
+            <!-- Resource 4: MIT -->
+            <a href="https://qubitbyqubit.org/" target="_blank" class="glass-card p-8 group reveal">
+                <i class="fa-solid fa-school text-3xl text-sky-400 mb-6 block group-hover:scale-110 transition"></i>
+                <h3 class="text-lg font-bold mb-2">Qubit by Qubit</h3>
+                <p class="text-slate-500 text-xs mb-6 leading-relaxed">Specifically for middle and high schoolers. Offers year-long courses with certificates from top tech firms.</p>
+                <div class="flex items-center text-[9px] font-bold text-sky-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                    Join Cohort <i class="fa-solid fa-arrow-right ml-2"></i>
+                </div>
+            </a>
+
+            <!-- Resource 5: Microsoft -->
+            <a href="https://azure.microsoft.com/en-us/solutions/quantum-computing/" target="_blank" class="glass-card p-8 group reveal">
+                <i class="fa-brands fa-microsoft text-3xl text-sky-400 mb-6 block group-hover:scale-110 transition"></i>
+                <h3 class="text-lg font-bold mb-2">Azure Quantum</h3>
+                <p class="text-slate-500 text-xs mb-6 leading-relaxed">Dive into the Q# language and explore quantum algorithms on Microsoft's specialized cloud platform.</p>
+                <div class="flex items-center text-[9px] font-bold text-sky-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                    Start Coding <i class="fa-solid fa-arrow-right ml-2"></i>
+                </div>
+            </a>
+
+            <!-- Resource 6: Science Creators -->
+            <a href="https://www.youtube.com/@veritasium" target="_blank" class="glass-card p-8 group reveal">
+                <i class="fa-brands fa-youtube text-3xl text-rose-500 mb-6 block group-hover:scale-110 transition"></i>
+                <h3 class="text-lg font-bold mb-2">Visual Physics</h3>
+                <p class="text-slate-500 text-xs mb-6 leading-relaxed">Veritasium and Physics Girl offer the best visual deep-dives into the weirdness of the quantum world.</p>
+                <div class="flex items-center text-[9px] font-bold text-sky-400 uppercase tracking-widest group-hover:translate-x-1 transition-transform">
+                    Watch Now <i class="fa-solid fa-arrow-right ml-2"></i>
+                </div>
+            </a>
+        </div>
+    </div>
+
+    <!-- TAB: PODCAST -->
+    <div id="tab-podcast" class="tab-content pt-48 pb-24 px-6 container mx-auto">
+        <div class="max-w-4xl mx-auto text-center mb-12 reveal">
+            <div class="w-24 h-24 bg-sky-500/10 rounded-full flex items-center justify-center mx-auto mb-6 border border-sky-500/20 shadow-[0_0_30px_rgba(56,189,248,0.2)]">
+                <i class="fa-solid fa-microphone-lines text-5xl text-sky-500"></i>
             </div>
-            <p class="mt-6 text-[10px] text-slate-600 uppercase tracking-widest">© 2026 Alabama Educational Media</p>
-        </div>
-    </section>
+            <h2 class="text-4xl font-black mb-2 tracking-tighter uppercase">Deep Dive <span class="text-sky-400">Podcast</span></h2>
+            <p class="text-slate-400 mb-8 italic">"Quantum North Alabama: The Huntsville Shift"</p>
 
-    <!-- Section: Curated Links -->
-    <section id="resources" class="py-24 container mx-auto px-6">
-        <h3 class="text-2xl font-bold mb-10 text-center">Resources & Links</h3>
-        <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
-            <a href="https://www.ibm.com/quantum" target="_blank" class="glass-panel p-6 text-center hover:bg-sky-500/10 transition">
-                <span class="text-sm font-bold">IBM Quantum</span>
-            </a>
-            <a href="https://quantumai.google/" target="_blank" class="glass-panel p-6 text-center hover:bg-sky-500/10 transition">
-                <span class="text-sm font-bold">Google Quantum AI</span>
-            </a>
-            <a href="https://www.uah.edu/science/departments/physics" target="_blank" class="glass-panel p-6 text-center hover:bg-sky-500/10 transition">
-                <span class="text-sm font-bold">UAH Physics</span>
-            </a>
-            <a href="https://csrc.nist.gov/projects/post-quantum-cryptography" target="_blank" class="glass-panel p-6 text-center hover:bg-sky-500/10 transition">
-                <span class="text-sm font-bold">NIST Post-Quantum</span>
-            </a>
-            <a href="https://quantumcomputingreport.com/" target="_blank" class="glass-panel p-6 text-center hover:bg-sky-500/10 transition">
-                <span class="text-sm font-bold">Quantum Report</span>
-            </a>
+            <div class="glass-card bg-white/10 border-white/20 p-8 shadow-2xl overflow-hidden mb-8 group">
+                <div class="relative rounded-2xl overflow-hidden aspect-video max-h-[200px] bg-black/40 mb-6">
+                    <iframe 
+                        src="https://drive.google.com/file/d/1Kf_EpnBOe85GOC2sJChOdj13R_FjiBna/preview" 
+                        class="absolute top-0 left-0 w-full h-full" 
+                        allow="autoplay">
+                    </iframe>
+                </div>
+                <div class="flex flex-col items-center gap-6">
+                    <p class="text-sm text-slate-400 max-w-lg leading-relaxed">
+                        In this student-focused episode, we talk with regional experts about why North Alabama is uniquely positioned to lead the second quantum revolution.
+                    </p>
+                    <div class="flex gap-4">
+                        <a href="https://drive.google.com/file/d/1Kf_EpnBOe85GOC2sJChOdj13R_FjiBna/view?usp=sharing" target="_blank" class="px-6 py-3 bg-white/5 border border-white/10 rounded-xl text-[10px] font-bold uppercase tracking-widest hover:bg-sky-500 hover:text-white transition-all shadow-lg">
+                            <i class="fa-solid fa-up-right-from-square mr-2"></i> Listen Full Quality
+                        </a>
+                    </div>
+                </div>
+            </div>
+            <button onclick="showTab('main')" class="text-sky-500 text-[10px] font-bold uppercase tracking-widest hover:underline flex items-center mx-auto">
+                <i class="fa-solid fa-chevron-left mr-2"></i> Return to Hub
+            </button>
         </div>
-    </section>
+    </div>
 
-    <!-- Footer -->
-    <footer class="py-12 border-t border-slate-800 text-center">
-        <p class="text-slate-500 text-xs tracking-widest uppercase mb-4">
-            Quantum North Alabama Initiative | 2026
-        </p>
-        <div class="flex justify-center space-x-6 text-slate-600">
-            <i class="fa-brands fa-github"></i>
-            <i class="fa-brands fa-linkedin"></i>
-            <i class="fa-brands fa-x-twitter"></i>
+    <footer class="py-16 border-t border-white/5 mt-20">
+        <div class="container mx-auto px-6 text-center">
+            <div class="flex items-center justify-center space-x-3 mb-6">
+                <div class="w-6 h-6 bg-sky-500 rounded-full flex items-center justify-center">
+                    <i class="fa-solid fa-atom text-white text-[10px]"></i>
+                </div>
+                <span class="text-lg font-bold">Quantum<span class="text-sky-400">HSV</span></span>
+            </div>
+            <p class="text-slate-600 text-[10px] uppercase tracking-[0.4em]">Designed for Students in North Alabama • Version 2.0 • 2024</p>
         </div>
     </footer>
 
-    <!-- Scripts -->
     <script>
-        let inSuperposition = true;
-        const coin = document.getElementById('coin');
-        const coinStatus = document.getElementById('coin-status');
-        const superBtn = document.getElementById('super-btn');
-        const coinIcon = document.getElementById('coin-icon');
+        // MOUSE-REACTIVE HERO PARTICLES
+        const heroCanvas = document.getElementById('hero-canvas');
+        const ctx = heroCanvas.getContext('2d');
+        let particles = [];
+        const mouse = { x: null, y: null };
 
-        function toggleSuperposition() {
-            if (inSuperposition) {
-                coin.classList.remove('coin-spin');
-                const outcome = Math.random() > 0.5 ? '1' : '0';
-                coinStatus.innerText = `Observed State: [${outcome}]`;
-                coinIcon.className = `fa-solid fa-${outcome}`;
-                superBtn.innerText = "Reset System";
-                inSuperposition = false;
-            } else {
-                coin.classList.add('coin-spin');
-                coinStatus.innerText = "State: [0 AND 1]";
-                coinIcon.className = "fa-solid fa-q";
-                superBtn.innerText = "Measure State";
-                inSuperposition = true;
+        function initHeroParticles() {
+            heroCanvas.width = window.innerWidth;
+            heroCanvas.height = window.innerHeight;
+            particles = [];
+            for (let i = 0; i < 60; i++) {
+                particles.push({
+                    x: Math.random() * heroCanvas.width,
+                    y: Math.random() * heroCanvas.height,
+                    size: Math.random() * 2 + 1,
+                    speedX: Math.random() * 0.5 - 0.25,
+                    speedY: Math.random() * 0.5 - 0.25
+                });
             }
         }
 
-        function changeSyncColor(colorClass) {
-            const pairs = document.querySelectorAll('.entangled-pair');
-            pairs.forEach(p => {
-                p.classList.remove('bg-sky-400', 'bg-pink-400', 'bg-emerald-400');
-                const bgClass = colorClass.replace('text', 'bg');
-                p.classList.add(bgClass);
+        function animateParticles() {
+            ctx.clearRect(0, 0, heroCanvas.width, heroCanvas.height);
+            ctx.fillStyle = 'rgba(56, 189, 248, 0.3)';
+            particles.forEach(p => {
+                p.x += p.speedX;
+                p.y += p.speedY;
+                if (p.x < 0 || p.x > heroCanvas.width) p.speedX *= -1;
+                if (p.y < 0 || p.y > heroCanvas.height) p.speedY *= -1;
+
+                if (mouse.x && mouse.y) {
+                    const dx = p.x - mouse.x;
+                    const dy = p.y - mouse.y;
+                    const dist = Math.sqrt(dx*dx + dy*dy);
+                    if (dist < 150) {
+                        p.x += dx * 0.01;
+                        p.y += dy * 0.01;
+                    }
+                }
+                ctx.beginPath();
+                ctx.arc(p.x, p.y, p.size, 0, Math.PI * 2);
+                ctx.fill();
             });
-            document.getElementById('sync-msg').className = `mt-4 text-xs font-mono ${colorClass} uppercase`;
-            document.getElementById('sync-msg').innerText = "INSTANT SYNC ACTIVE";
+            requestAnimationFrame(animateParticles);
         }
+
+        window.addEventListener('mousemove', e => {
+            mouse.x = e.clientX;
+            mouse.y = e.clientY;
+        });
+
+        // TAB SWITCHING
+        function showTab(tabId) {
+            document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
+            document.querySelectorAll('.nav-btn').forEach(btn => btn.classList.remove('active'));
+            
+            const activeTab = document.getElementById('tab-' + tabId);
+            const activeBtn = document.getElementById('btn-' + tabId);
+            
+            if (activeTab) activeTab.classList.add('active');
+            if (activeBtn) activeBtn.classList.add('active');
+            
+            window.scrollTo({top: 0, behavior: 'smooth'});
+            
+            if (tabId === 'main') {
+                setTimeout(resizeThree, 100);
+            }
+        }
+
+        function scrollToId(id) {
+            const el = document.getElementById(id);
+            if (el) el.scrollIntoView({ behavior: 'smooth' });
+        }
+
+        // GLOSSARY SEARCH
+        function filterGlossary() {
+            const input = document.getElementById('glossary-search').value.toLowerCase();
+            const items = document.querySelectorAll('.glossary-item');
+            items.forEach(item => {
+                const term = item.getAttribute('data-term');
+                if (term.includes(input)) item.style.display = 'block';
+                else item.style.display = 'none';
+            });
+        }
+
+        // QUIZ LOGIC
+        const quizData = [
+            { q: "What property allows a qubit to be 0 and 1 at the same time?", a: "Superposition" },
+            { q: "What did Einstein call Entanglement?", a: "Spooky action at a distance" },
+            { q: "What is the biggest enemy of a quantum state?", a: "Decoherence" }
+        ];
+        let currentQuizIdx = 0;
+
+        function checkAnswer(btn, isCorrect) {
+            const feedback = document.getElementById('quiz-feedback');
+            const feedbackText = document.getElementById('feedback-text');
+            const quizArea = document.getElementById('quiz-area');
+            
+            quizArea.style.opacity = '0.5';
+            quizArea.style.pointerEvents = 'none';
+            feedback.classList.remove('hidden');
+
+            if (isCorrect) {
+                feedbackText.innerText = "Correct! You're a natural.";
+                feedbackText.className = "text-xs font-bold mb-4 text-emerald-400";
+            } else {
+                feedbackText.innerText = "Not quite! Check the glossary.";
+                feedbackText.className = "text-xs font-bold mb-4 text-rose-400";
+            }
+        }
+
+        function nextQuestion() {
+            currentQuizIdx = (currentQuizIdx + 1) % quizData.length;
+            const q = quizData[currentQuizIdx];
+            document.getElementById('quiz-question').innerText = q.q;
+            document.getElementById('quiz-feedback').classList.add('hidden');
+            const quizArea = document.getElementById('quiz-area');
+            quizArea.style.opacity = '1';
+            quizArea.style.pointerEvents = 'auto';
+        }
+
+        // THREE JS BLOCH SPHERE
+        let scene, camera, renderer, sphere, arrow;
+        function initThree() {
+            const canvas = document.getElementById('bloch-sphere');
+            if (!canvas) return;
+            scene = new THREE.Scene();
+            camera = new THREE.PerspectiveCamera(75, canvas.clientWidth / canvas.clientHeight, 0.1, 1000);
+            renderer = new THREE.WebGLRenderer({ canvas, alpha: true, antialias: true });
+            renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            
+            const geometry = new THREE.SphereGeometry(1, 48, 48);
+            const material = new THREE.MeshPhongMaterial({ 
+                color: 0x38bdf8, 
+                wireframe: true, 
+                transparent: true, 
+                opacity: 0.15 
+            });
+            sphere = new THREE.Mesh(geometry, material);
+            scene.add(sphere);
+
+            // Adding axis lines for clarity
+            const xLineMat = new THREE.LineBasicMaterial({ color: 0x444444 });
+            const xPoints = [new THREE.Vector3(-1.2, 0, 0), new THREE.Vector3(1.2, 0, 0)];
+            scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(xPoints), xLineMat));
+            
+            const zPoints = [new THREE.Vector3(0, -1.2, 0), new THREE.Vector3(0, 1.2, 0)];
+            scene.add(new THREE.Line(new THREE.BufferGeometry().setFromPoints(zPoints), xLineMat));
+
+            arrow = new THREE.ArrowHelper(new THREE.Vector3(0, 1, 0), new THREE.Vector3(0,0,0), 1.2, 0x818cf8, 0.2, 0.1);
+            scene.add(arrow);
+
+            const light = new THREE.PointLight(0xffffff, 1, 100);
+            light.position.set(5, 5, 5);
+            scene.add(light);
+            scene.add(new THREE.AmbientLight(0x404040));
+            camera.position.z = 2.4;
+            
+            function animate() {
+                requestAnimationFrame(animate);
+                if (sphere) sphere.rotation.y += 0.003;
+                renderer.render(scene, camera);
+            }
+            animate();
+        }
+
+        function resizeThree() {
+            const canvas = document.getElementById('bloch-sphere');
+            if (canvas && renderer && camera) {
+                camera.aspect = canvas.clientWidth / canvas.clientHeight;
+                camera.updateProjectionMatrix();
+                renderer.setSize(canvas.clientWidth, canvas.clientHeight);
+            }
+        }
+
+        function rotateTo(state) {
+            let targetDir;
+            if (state === '0') targetDir = new THREE.Vector3(0, 1, 0);
+            else if (state === '1') targetDir = new THREE.Vector3(0, -1, 0);
+            else if (state === 'H') targetDir = new THREE.Vector3(1, 0, 0);
+            if (arrow) arrow.setDirection(targetDir.normalize());
+        }
+
+        // CIRCUIT LOGIC
+        const gates = ['-', 'H', 'X', 'Z'];
+        function toggleGate(slot) {
+            const el = document.getElementById(`gate-slot-${slot}`);
+            let currentText = el.innerText;
+            let gateIdx = (gates.indexOf(currentText) + 1) % gates.length;
+            const newGate = gates[gateIdx];
+            el.innerText = newGate;
+            
+            // Visual feedback
+            if (newGate === '-') {
+                el.className = 'w-14 h-14 bg-slate-800 rounded-lg flex items-center justify-center font-bold text-white shadow-xl gate border border-white/5';
+            } else {
+                el.className = 'w-14 h-14 bg-indigo-600 rounded-lg flex items-center justify-center font-bold text-white shadow-xl gate border border-white/20 scale-105 ring-2 ring-indigo-500/50';
+            }
+            calculateOutcome();
+        }
+
+        function calculateOutcome() {
+            let hCount = 0; let xCount = 0;
+            document.querySelectorAll('.gate').forEach(g => {
+                if (g.innerText === 'H') hCount++;
+                if (g.innerText === 'X') xCount++;
+            });
+            const probEl = document.getElementById('prob-display');
+            if (hCount % 2 !== 0) {
+                probEl.innerText = '50% |0⟩ : 50% |1⟩'; 
+                probEl.className = 'text-lg font-bold text-indigo-400';
+                rotateTo('H');
+            } else {
+                const finalState = xCount % 2 === 0 ? '0' : '1';
+                probEl.innerText = `100% |${finalState}⟩`; 
+                probEl.className = 'text-lg font-bold text-emerald-400';
+                rotateTo(finalState);
+            }
+        }
+
+        function resetCircuit() {
+            document.querySelectorAll('.gate').forEach(el => {
+                el.innerText = '-'; 
+                el.className = 'w-14 h-14 bg-slate-800 rounded-lg flex items-center justify-center font-bold text-white shadow-xl gate border border-white/5';
+            });
+            calculateOutcome();
+        }
+
+        // INITIALIZATION
+        window.addEventListener('resize', () => {
+            initHeroParticles();
+            resizeThree();
+        });
+
+        const observer = new IntersectionObserver((entries) => {
+            entries.forEach(entry => { if (entry.isIntersecting) entry.target.classList.add('active'); });
+        }, { threshold: 0.1 });
+
+        window.onload = () => { 
+            initHeroParticles();
+            animateParticles();
+            initThree(); 
+            document.querySelectorAll('.reveal').forEach(el => observer.observe(el));
+        };
     </script>
+</body>
+</html>
 </body>
 </html>
